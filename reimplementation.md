@@ -36,7 +36,7 @@ on problems no session saw.
 | Grading | Math-Verify on the last `\boxed{}` after the thinking. No credit if the thinking is still open at the budget |
 | Out-of-scope edits | Input embedding, final normalisation, output layer, rescaling a whole tensor |
 | Rules | No gradients, optimizers or training of any kind, no running the network inside Python, no internet |
-| Serving | vLLM, with weights and saved edits in bf16. The model that edits runs in the same engine, reset to its own weights before each of its replies. Pin the vLLM version and record it with every result |
+| Serving | vLLM 0.34.0, with weights and saved edits in bf16. The model that edits runs in the same engine, reset to its own weights before each of its replies. Record the vLLM version with every result. `max_num_seqs=256`: the default of 1,024 exceeds the 796 linear-attention state blocks that fit on one RTX Pro 6000 |
 | Code runs | Each stops after 600 s, and its output is cut at 10,000 characters |
 | Model replies | Up to 12,000 new tokens each. Past 90,000 tokens of context, the conversation restarts from the task, the model's notes and its log of passes |
 | Task text | Paraphrased in App. D.4, including the instruction to test each part of an edit separately |
@@ -53,7 +53,7 @@ This checks the evaluation pipeline before the session harness exists. It needs 
 
 Re-derived edits follow the model's recipe but are not the model's own edit, so they are labelled as such.
 
-Before applying E-S8, confirm that the paper's *time-step bias* is the Gated DeltaNet time-step bias parameter in the Qwen3.5 checkpoint.
+E-S8's *time-step bias* is the tensor `model.language_model.layers.<i>.linear_attn.dt_bias` in the checkpoint, one per linear-attention layer. The checkpoint has all 48 (checked against `model.safetensors.index.json`).
 
 If E-S8 fails its criterion in [eval.md](eval.md), stop here. Check the parameter name, the number format and the vLLM version.
 

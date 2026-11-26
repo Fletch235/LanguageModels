@@ -1,6 +1,6 @@
 # Paper Reimplementation: Language Models Can Rewrite Their Own Weights
 
-This repository reimplements and extends Fan et al., *Language Models Can Rewrite Their Own Weights* ([arXiv:2611.21885](https://arxiv.org/abs/2611.21885)).
+This repository reimplements and extends Fan et al., *Language Models Can Rewrite Their Own Weights* ([arXiv:2611.21885](https://arxiv.org/abs/2611.21885), [project page](https://www.jiajunfan.com/projects/self-rewriting/)). As of November 25, 2026, neither releases code, data splits, edits or transcripts.
 
 In the paper, Qwen3.5-27B edits its own weights by its own reasoning, with no gradients, no optimizer and no stronger model. Its edits make it up to 6.6 points more accurate on competition-math problems it never saw. Every result in the paper is on mathematics.
 
@@ -20,6 +20,7 @@ How every edit is evaluated, on which data, and what counts as a result, is in [
 | [reimplementation.md](reimplementation.md) | Rebuilding the session and re-running the paper's math experiment |
 | [change-data.md](change-data.md) | Swapping the math practice set for coding data |
 | [eval.md](eval.md) | Evaluation data, statistics, controls, hypotheses and pass criteria |
+| [commands.md](commands.md) | Linux and Longleaf commands used, with what each did |
 | `languagemodels.pdf` | The paper |
 
 ## Hardware and environment
@@ -30,7 +31,7 @@ All runs use the `rtx6k_gpu` partition of Longleaf, the UNC Research Computing c
 |---|---|
 | Cluster | Longleaf, UNC Research Computing |
 | Operating system | Red Hat Enterprise Linux 9 |
-| Scheduler | Slurm, partition `rtx6k_gpu`, QOS `gpu_access` |
+| Scheduler | Slurm, partition `rtx6k_gpu`, QOS `gpu_rtx6k` |
 | GPU | NVIDIA RTX Pro 6000, 96 GB, no NVLink |
 | GPUs in the partition | 72 |
 | Per-job limits | 16 CPUs and 128 GB of system RAM. More needs approval from research@unc.edu |
@@ -47,12 +48,19 @@ The 27B model's bf16 weights take about 54 GB, so one model copy fits on one GPU
 A job header within these limits:
 
 ```bash
-#SBATCH -n 1
+# One task (one program)
+#SBATCH --ntasks=1
+# 16 CPU cores, the per-job maximum
 #SBATCH --cpus-per-task=16
+# 128 GB of system RAM, the per-job maximum
 #SBATCH --mem=128g
-#SBATCH -t 1-
-#SBATCH -p rtx6k_gpu
-#SBATCH --qos=gpu_access
+# Stop after 1 day
+#SBATCH --time=1-00:00:00
+# The RTX Pro 6000 partition
+#SBATCH --partition=rtx6k_gpu
+# The QOS this partition requires (gpu_access is refused here)
+#SBATCH --qos=gpu_rtx6k
+# One GPU
 #SBATCH --gres=gpu:1
 ```
 
